@@ -1,4 +1,4 @@
----
+
 ⚡ Temp Table Setup
 
 - Use `temp_table_setup.sql` to spin up temp sandbox tables directly in your company’s DB.
