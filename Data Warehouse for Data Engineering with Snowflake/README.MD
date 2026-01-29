@@ -31,7 +31,7 @@ The following diagram illustrates the end-to-end data pipeline, from data ingest
 - Data loading into Snowflake
 - Transformation into analytics-ready tables
 
-![Architecture Diagram](../Architecture%20Diagram.png)
+![Architecture Diagram](./Architecture%20Diagram.png)
 
 ---
 
