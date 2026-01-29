@@ -34,7 +34,8 @@ simplify analytics.
   - aisle_id
   - department_id
 
-![Star Schema Design](../star_schema.png)
+![Star Schema Design](../Star%20schema%20.png)
+
 
 ---
 
@@ -72,7 +73,7 @@ simplify analytics.
 ## Snowflake Implementation
 The dimensional model is implemented using **Snowflake SQL** transformations.
 
-![Snowflake Tables](../snowflake.png)
+![Snowflake Tables](../snowflake%20tables%20.png)
 
 Key implementation details:
 - Raw data loaded from AWS S3 using external stages
