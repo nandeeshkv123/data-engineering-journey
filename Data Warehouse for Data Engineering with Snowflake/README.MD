@@ -31,7 +31,7 @@ The following diagram illustrates the end-to-end data pipeline, from data ingest
 - Data loading into Snowflake
 - Transformation into analytics-ready tables
 
-![Architecture Diagram](architecture.png)
+![Architecture Diagram](../Architecture%20Diagram.png)
 
 ---
 
@@ -44,6 +44,8 @@ The following diagram illustrates the end-to-end data pipeline, from data ingest
 ### 2. Raw Data Storage (AWS S3)
 - All raw CSV files are uploaded to an Amazon S3 bucket
 - S3 acts as the **landing zone / raw layer**
+
+![S3 Raw Files](../S3%20files.png)
 
 ### 3. Secure Cloud Access (IAM)
 - Dedicated IAM user created for Snowflake access
@@ -86,7 +88,7 @@ The following diagram illustrates the end-to-end data pipeline, from data ingest
 - Grain: One row per product per order
 - Captures user, product, aisle, department, and reorder behavior
 
-![Star Schema Design](star_schema.png)
+![Star Schema Design](../Star%20schema%20.png)
 
 ### Why Star Schema?
 - Simplifies analytical queries
@@ -132,6 +134,7 @@ This ensures:
 - Referential consistency
 - Analytics-ready structure
 
+![Snowflake Tables](../snowflake%20tables%20.png)
 ---
 
 ## Example Analytical Query
