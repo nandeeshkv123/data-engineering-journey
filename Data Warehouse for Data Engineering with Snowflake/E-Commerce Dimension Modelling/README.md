@@ -15,7 +15,7 @@ production analytics systems.
 This dimensional model is part of a larger end-to-end data engineering pipeline built
 using **AWS S3** and **Snowflake**.
 
-![Architecture Diagram](../architecture.png)
+![Architecture Diagram](../Architecture Diagram.png)
 
 ---
 
