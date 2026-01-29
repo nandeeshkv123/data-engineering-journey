@@ -19,9 +19,17 @@ using **AWS S3** and **Snowflake**.
 
 ---
 
+## AWS S3 Raw Data Layer
+The following image shows the raw Instacart CSV files stored in **Amazon S3** before being
+ingested into Snowflake. This represents the **raw / landing layer** of the data pipeline.
+
+![S3 Raw Files](../S3%20files.png)
+
+---
+
 ## Star Schema Design
 The data warehouse is modeled using a **star schema** to improve query performance and
-simplify analytics.
+simplify analytical queries.
 
 ### Fact Table: `fact_order_product`
 - **Grain:** One record per product per order
@@ -35,7 +43,6 @@ simplify analytics.
   - department_id
 
 ![Star Schema Design](../Star%20schema%20.png)
-
 
 ---
 
@@ -66,7 +73,7 @@ simplify analytics.
 - order_dow  
 - order_hour_of_day  
 - days_since_prior_order  
-- Captures order-level behavior
+- Captures order-level ordering behavior
 
 ---
 
@@ -76,7 +83,7 @@ The dimensional model is implemented using **Snowflake SQL** transformations.
 ![Snowflake Tables](../snowflake%20tables%20.png)
 
 Key implementation details:
-- Raw data loaded from AWS S3 using external stages
+- Raw data loaded from AWS S3 using Snowflake external stages
 - Dimension tables created using `SELECT DISTINCT`
 - Fact table built using optimized joins between orders, products, and order line items
 - Referential consistency maintained across fact and dimension tables
@@ -86,14 +93,14 @@ Key implementation details:
 ## Analytical Use Cases
 This dimensional model enables analytics such as:
 - Products ordered by department and aisle
-- User purchase frequency and behavior
-- Reorder rate and product popularity analysis
+- User purchase frequency and behavior analysis
+- Reorder rate and product popularity insights
 - Time-based ordering patterns
 
 ---
 
 ## Design Rationale
-- Star schema chosen for simplicity and performance
+- Star schema chosen for simplicity and query performance
 - Clear separation of fact and dimension tables
 - Scalable design suitable for large datasets
 - Optimized for BI tools and SQL-based analytics
@@ -101,6 +108,6 @@ This dimensional model enables analytics such as:
 ---
 
 ## Key Takeaways
-- Demonstrates real-world dimensional modeling skills
-- Aligns with enterprise data warehouse design standards
-- Supports scalable and analytics-ready data pipelines
+- Demonstrates real-world dimensional data modeling skills
+- Aligns with enterprise data warehouse best practices
+- Supports scalable, analytics-ready data pipelines
