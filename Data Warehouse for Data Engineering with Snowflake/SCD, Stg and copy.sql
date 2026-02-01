@@ -85,3 +85,92 @@ select
      from customer where customerid = 2
     
 select * from Customer where customerid = 2
+
+
+ ----STAGE AND COPY 
+    
+CREATE OR REPLACE DATABASE MANAGE_DB ;
+
+CREATE OR REPLACE SCHEMA external_stages ;
+
+
+create or replace stage manage_db.external_stages.aws_stage
+url = 'S3://bucketsnowflakes3'
+
+
+LIST @aws_stage
+
+
+CREATE OR REPLACE TABLE MANAGE_DB.PUBLIC.ORDERS
+(
+ORDER_ID VARCHAR(3),
+AMOUNT INT ,
+PROFIT INT,
+QUANTITY INT,
+CATEGORY VARCHAR(30),
+SUBCATEGORY VARCHAR(30));
+
+
+SELECT * FROM MANAGE_DB.PUBLIC.ORDERS
+
+
+COPY INTO MANAGE_DB.PUBLIC.ORDERS
+FROM @aws_stage
+file_format = (type = csv  field_delimiter = "," skip_header = 1)
+files = ('OrderDetails.csv')
+
+
+ALTER TABLE MANAGE_DB.PUBLIC.ORDERS
+MODIFY COLUMN ORDER_ID VARCHAR(20);
+
+
+
+---if you want to only add few column 
+
+
+CREATE OR REPLACE TABLE MANAGE_DB.PUBLIC.ORDERS_EX
+(
+ORDER_ID VARCHAR(30),
+AMOUNT INT 
+);
+
+COPY INTO MANAGE_DB.PUBLIC.ORDERS_EX
+FROM ( SELECT s.$1 , s.$2  from  @manage_db.external_stages.aws_stage s)
+file_format = (type = csv  field_delimiter = "," skip_header = 1)
+files = ('OrderDetails.csv')
+
+
+select * from MANAGE_DB.PUBLIC.ORDERS_EX
+
+
+---if yon want to add more derivated column
+
+
+CREATE OR REPLACE TABLE MANAGE_DB.PUBLIC.ORDERS_EX1
+(
+ORDER_ID VARCHAR(30),
+AMOUNT INT ,
+PROFIT INT,
+QUANTITY INT,
+CATEGORY_SUBSTRING VARCHAR(5)
+);
+
+
+COPY INTO MANAGE_DB.PUBLIC.ORDERS_EX1
+FROM ( 
+SELECT 
+s.$1 , 
+s.$2  ,
+s.$3,
+s.$4,
+CASE WHEN CAST(s.$3 as int ) < 0 then 'not profitable' else 'profitable' end 
+from  @manage_db.external_stages.aws_stage s)
+file_format = (type = csv  field_delimiter = "," skip_header = 1)
+files = ('OrderDetails.csv');
+
+ALTER TABLE MANAGE_DB.PUBLIC.ORDERS_EX1
+MODIFY COLUMN CATEGORY_SUBSTRING VARCHAR(20);
+
+
+select * from MANAGE_DB.PUBLIC.ORDERS_EX1
+
