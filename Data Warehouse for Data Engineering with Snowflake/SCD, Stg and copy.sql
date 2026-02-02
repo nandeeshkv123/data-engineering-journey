@@ -174,3 +174,95 @@ MODIFY COLUMN CATEGORY_SUBSTRING VARCHAR(20);
 
 select * from MANAGE_DB.PUBLIC.ORDERS_EX1
 
+
+
+
+    
+
+--- HOW TO HANDLE UNSTRUCTURED DATA and convert into a usable format 
+
+CREATE OR REPLACE STAGE MANAGE_DB.EXTERNAL_STAGES.JSONSTAGE
+     URL = 's3://bucketsnowflake-jsondemo' ;
+
+CREATE OR REPLACE file format MANAGE_DB.FILE_FORMATS.JSONFORMAT
+   TYPE = JSON ;
+   
+CREATE DATABASE OUR_FIRST_DB ;
+
+CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC.JSON_RAW (
+RAW_FILE VARIANT 
+);
+
+SELECT * FROM OUR_FIRST_DB.PUBLIC.JSON_RAW
+
+EX:
+    {
+  "city": "Bakersfield",
+  "first_name": "Portia",
+  "gender": "Male",
+  "id": 1,
+  "job": {
+    "salary": 32000,
+    "title": "Financial Analyst"
+  },
+  "last_name": "Gioani",
+  "prev_company": [],
+  "spoken_languages": [
+    {
+      "language": "Kazakh",
+      "level": "Advanced"
+    },
+    {
+      "language": "Lao",
+      "level": "Basic"
+    }
+  ]
+}
+
+
+COPY INTO OUR_FIRST_DB.PUBLIC.JSON_RAW
+ FROM @MANAGE_DB.EXTERNAL_STAGES.JSONSTAGE
+ FILE_FORMAT = MANAGE_DB.FILE_FORMATS.JSONFORMAT
+ files = ('HR_data.json') ;
+
+ select *  from OUR_FIRST_DB.PUBLIC.JSON_RAW
+
+
+ select RAW_FILE:city  as city ,RAW_FILE:first_name as first_name ,RAW_FILE:job.salary ,RAW_FILE:job.title     FROM OUR_FIRST_DB.PUBLIC.JSON_RAW
+
+
+     ---If you want one row per language (more analytics-friendly) 
+     
+     SELECT
+    raw:id::INT                AS id,
+    raw:first_name::STRING     AS first_name,
+    raw:last_name::STRING      AS last_name,
+    raw:gender::STRING         AS gender,
+    raw:city::STRING           AS city,
+    raw:job.title::STRING      AS job_title,
+    raw:job.salary::INT        AS job_salary,
+    lang.value:language::STRING AS language,
+    lang.value:level::STRING    AS level
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW,
+     LATERAL FLATTEN(input => raw:spoken_languages) lang;
+
+output :
+
+| id | first_name | last_name | city        | job_title         | job_salary | language | level    |
+| -- | ---------- | --------- | ----------- | ----------------- | ---------- | -------- | -------- |
+| 1  | Portia     | Gioani    | Bakersfield | Financial Analyst | 32000      | Kazakh   | Advanced |
+| 1  | Portia     | Gioani    | Bakersfield | Financial Analyst | 32000      | Lao      | Basic    |
+
+ CREATE  OR REPLACE TABLE Languages as 
+ select 
+    RAW_FILE:first_name :: STRING first_name ,
+    f.value:language::STRING language,
+    f.value:level::STRING level 
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW , TABLE(flatten(RAW_FILE:spoken_languages)) f
+
+select * from Languages
+
+
+
+
+ 
