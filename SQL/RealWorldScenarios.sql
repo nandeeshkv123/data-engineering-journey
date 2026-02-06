@@ -1,4 +1,185 @@
--- ====================================================
+-# SQL Interview Cheat Sheet
+
+Quick reference guide for SQL interviews, covering **aggregates, subqueries, CTEs, window functions, ranking, and filtering**.
+
+---
+
+## 1️⃣ Aggregate Functions & GROUP BY
+
+**Purpose:** Summarize data  
+
+**Example: Total salary per department**
+```sql
+SELECT department_id, SUM(salary) AS total_salary
+FROM employees
+GROUP BY department_id;
+Notes:
+
+GROUP BY reduces rows
+
+Cannot use non-aggregated columns without GROUP BY
+
+2️⃣ Window Functions & PARTITION BY
+Purpose: Analyze data without reducing rows
+
+Example 1: Rank employees by salary per department
+
+SELECT employee_id, department_id, salary,
+       RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS dept_rank
+FROM employees;
+Example 2: Average salary per department (keeps all rows)
+
+SELECT employee_id, department_id, salary,
+       AVG(salary) OVER (PARTITION BY department_id) AS dept_avg
+FROM employees;
+Notes:
+
+RANK() → skips numbers if ties
+
+DENSE_RANK() → no skipped numbers
+
+ROW_NUMBER() → exact row number
+
+3️⃣ Subqueries
+Purpose: Use results of one query in another
+
+Example 1: Employees above average salary
+
+SELECT *
+FROM employees
+WHERE salary > (
+    SELECT AVG(salary)
+    FROM employees
+);
+Example 2: Employees in NY departments
+
+SELECT *
+FROM employees
+WHERE department_id IN (
+    SELECT department_id
+    FROM departments
+    WHERE location = 'NY'
+);
+Notes:
+
+Subquery = single-use
+
+Can be scalar (single value) or column set (IN)
+
+Cannot use aggregates directly in WHERE → need subquery
+
+4️⃣ CTE (Common Table Expressions)
+Purpose: Make queries readable, multi-step, reusable
+
+Syntax:
+
+WITH cte_name AS (
+    SELECT ...
+)
+SELECT ...
+FROM cte_name;
+Example 1: Average salary per department
+
+WITH dept_avg AS (
+    SELECT department_id, AVG(salary) AS avg_salary
+    FROM employees
+    GROUP BY department_id
+)
+SELECT e.employee_id, e.salary
+FROM employees e
+JOIN dept_avg d
+  ON e.department_id = d.department_id
+WHERE e.salary > d.avg_salary;
+Example 2: Multi-CTE – Complex filtering & ranking
+
+WITH dept_avg AS (
+    SELECT department_id, AVG(salary) AS avg_salary
+    FROM employees
+    GROUP BY department_id
+),
+dept_max AS (
+    SELECT department_id, MAX(salary) AS max_salary
+    FROM employees
+    GROUP BY department_id
+),
+filtered_employees AS (
+    SELECT e.employee_id, e.department_id, e.salary, d.avg_salary, m.max_salary
+    FROM employees e
+    JOIN dept_avg d ON e.department_id = d.department_id
+    JOIN dept_max m ON e.department_id = m.department_id
+    WHERE e.salary > d.avg_salary AND e.salary < m.max_salary
+),
+ranked_employees AS (
+    SELECT *, RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS dept_rank
+    FROM filtered_employees
+)
+SELECT *
+FROM ranked_employees
+ORDER BY department_id, dept_rank;
+Notes:
+
+CTE = readable subquery
+
+Can be reused multiple times
+
+Supports recursion
+
+Ideal for multi-step queries
+
+5️⃣ Finding N-th Value (50th highest salary)
+DENSE_RANK approach:
+
+SELECT *
+FROM (
+    SELECT employee_id, salary,
+           DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk
+    FROM employees
+) t
+WHERE rnk = 50;
+ROW_NUMBER approach:
+
+SELECT *
+FROM (
+    SELECT employee_id, salary,
+           ROW_NUMBER() OVER (ORDER BY salary DESC) AS rn
+    FROM employees
+) t
+WHERE rn = 50;
+Note:
+
+MAX() cannot be used for 50th value → only finds highest
+
+6️⃣ Key Tips for Interviews
+GROUP BY = collapse rows, use for aggregation
+
+PARTITION BY = analyze without collapsing rows
+
+Subquery = single-use, temporary result
+
+CTE = multi-step, readable, reusable
+
+Ranking = use RANK(), DENSE_RANK(), ROW_NUMBER() as needed
+
+Always check nulls and ties for ranking/aggregate problems
+
+Step-by-step approach: filter → aggregate → rank → final output
+
+Quick Reference Table
+Function/Keyword	Purpose	Example
+AVG()	Average	SELECT AVG(salary) FROM employees;
+MAX()	Highest value	SELECT MAX(salary) FROM employees;
+SUM()	Total	SELECT SUM(salary) FROM employees;
+COUNT()	Count rows	SELECT COUNT(*) FROM employees;
+RANK()	Rank with gaps	RANK() OVER (PARTITION BY dept ORDER BY salary DESC)
+DENSE_RANK()	Rank without gaps	DENSE_RANK() OVER (PARTITION BY dept ORDER BY salary DESC)
+ROW_NUMBER()	Exact row number	ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC)
+GROUP BY	Aggregate rows	GROUP BY department_id
+PARTITION BY	Window function group	AVG(salary) OVER (PARTITION BY department_id)
+Subquery	Query inside query	WHERE salary > (SELECT AVG(salary) ...)
+CTE	Named step / reusable	WITH dept_avg AS (...) SELECT ...
+
+
+	- ====================================================
 -- 📌 REAL-WORLD SQL MASTER SCENARIOS — ALL IN ONE
 -- Author: nandeeshkv123 | DataEngineerJourney
 -- ====================================================
